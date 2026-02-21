@@ -146,11 +146,21 @@ export function DashboardOverview() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex flex-col gap-2">
-                                <span className="text-muted-foreground text-sm italic">No recent recommendations.</span>
-                                <Link href="/advisor">
-                                    <Badge variant="secondary" className="hover:bg-green-100 cursor-pointer">Get Advice →</Badge>
-                                </Link>
+                            <div className="flex flex-col gap-3">
+                                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-100 dark:border-amber-900/50">
+                                    <p className="text-sm text-amber-800 dark:text-amber-400 font-medium mb-1 flex items-center gap-1.5">
+                                        <Leaf className="w-3.5 h-3.5" /> Quick Tip
+                                    </p>
+                                    <p className="text-xs text-amber-700/80 dark:text-amber-500/80 leading-relaxed">
+                                        For optimal yields, rotate crops to maintain soil health. Consider planting nitrogen-fixing legumes before heavy feeders like corn or wheat.
+                                    </p>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground text-xs italic">Need a personalized plan?</span>
+                                    <Link href="/advisor">
+                                        <Badge variant="secondary" className="hover:bg-green-100 cursor-pointer shadow-sm text-xs py-1">Get AI Advice →</Badge>
+                                    </Link>
+                                </div>
                             </div>
                         )}
                     </CardContent>
