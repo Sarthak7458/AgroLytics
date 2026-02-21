@@ -171,15 +171,15 @@ export function DashboardOverview() {
                             <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                                 <div>
                                     <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Location</p>
-                                    <p className="font-medium text-foreground">{khetDetails.city || "N/A"}, {khetDetails.state || "N/A"}</p>
+                                    <p className="font-medium text-foreground capitalize">{khetDetails.location || "N/A"}</p>
                                 </div>
                                 <div>
                                     <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Land Size</p>
                                     <p className="font-medium text-foreground text-blue-700 dark:text-blue-400">{khetDetails.landSize ? `${khetDetails.landSize} Acres` : "N/A"}</p>
                                 </div>
                                 <div>
-                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Soil Type</p>
-                                    <p className="font-medium text-foreground capitalize">{khetDetails.soilType || "N/A"}</p>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Season</p>
+                                    <p className="font-medium text-foreground capitalize">{khetDetails.season || "N/A"}</p>
                                 </div>
                                 <div>
                                     <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Irrigation</p>
