@@ -1,0 +1,22 @@
+{
+    "wheat": {
+        "currentPrice": 2200,
+        "trend": "stable"
+    },
+    "rice": {
+        "currentPrice": 2800,
+        "trend": "up"
+    },
+    "mustard": {
+        "currentPrice": 5500,
+        "trend": "up"
+    },
+    "cotton": {
+        "currentPrice": 6000,
+        "trend": "down"
+    },
+    "sugarcane": {
+        "currentPrice": 350,
+        "trend": "stable"
+    }
+}

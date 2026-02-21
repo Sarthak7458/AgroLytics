@@ -1,0 +1,22 @@
+{
+    "wheat": {
+        "weatherRisk": "Low",
+        "priceVolatility": "Low"
+    },
+    "rice": {
+        "weatherRisk": "Medium",
+        "priceVolatility": "Medium"
+    },
+    "mustard": {
+        "weatherRisk": "Medium",
+        "priceVolatility": "High"
+    },
+    "cotton": {
+        "weatherRisk": "High",
+        "priceVolatility": "High"
+    },
+    "sugarcane": {
+        "weatherRisk": "Low",
+        "priceVolatility": "Low"
+    }
+}

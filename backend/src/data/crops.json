@@ -1,0 +1,82 @@
+[
+    {
+        "id": "wheat",
+        "name": "Wheat",
+        "season": [
+            "Winter",
+            "Spring"
+        ],
+        "irrigation": [
+            "Canal",
+            "Tube Well"
+        ],
+        "minLandSize": 1,
+        "yieldPerAcre": 20,
+        "costPerAcre": 15000,
+        "description": "A staple crop that thrives in cool weather with moderate water needs."
+    },
+    {
+        "id": "rice",
+        "name": "Rice",
+        "season": [
+            "Summer",
+            "Monsoon"
+        ],
+        "irrigation": [
+            "Canal",
+            "Flooding"
+        ],
+        "minLandSize": 2,
+        "yieldPerAcre": 25,
+        "costPerAcre": 20000,
+        "description": "Requires significant water but offers high yield in wet seasons."
+    },
+    {
+        "id": "mustard",
+        "name": "Mustard",
+        "season": [
+            "Winter"
+        ],
+        "irrigation": [
+            "Rainfed",
+            "Tube Well",
+            "Canal"
+        ],
+        "minLandSize": 0.5,
+        "yieldPerAcre": 10,
+        "costPerAcre": 8000,
+        "description": "Low maintenance cash crop, perfect for winter with less water."
+    },
+    {
+        "id": "cotton",
+        "name": "Cotton",
+        "season": [
+            "Summer"
+        ],
+        "irrigation": [
+            "Drip",
+            "Canal"
+        ],
+        "minLandSize": 3,
+        "yieldPerAcre": 15,
+        "costPerAcre": 25000,
+        "description": "High value cash crop but requires pest management and heat."
+    },
+    {
+        "id": "sugarcane",
+        "name": "Sugarcane",
+        "season": [
+            "Winter",
+            "Summer",
+            "Monsoon"
+        ],
+        "irrigation": [
+            "Canal",
+            "Tube Well"
+        ],
+        "minLandSize": 4,
+        "yieldPerAcre": 400,
+        "costPerAcre": 30000,
+        "description": "Long duration crop with high returns, needs consistent water."
+    }
+]
