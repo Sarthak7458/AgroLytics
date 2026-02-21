@@ -16,6 +16,8 @@ const COLORS = [
     'oklch(0.75 0.15 85)',  // --warning
     'oklch(0.55 0.2 25)'    // --danger
 ]
+
+const DEFAULT_CHART_COLORS = ['#16a34a', '#2563eb', '#ea580c', '#eab308', '#8b5cf6']
 export function DashboardOverview() {
     const { profile } = useProfile()
     const [latestRec, setLatestRec] = useState<any>(null)
