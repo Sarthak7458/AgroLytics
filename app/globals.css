@@ -79,6 +79,10 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+.dark body {
+  background-image: none;
+}
+
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
@@ -130,6 +134,16 @@
 
   body {
     @apply bg-background text-foreground;
+    /* High-tech darker AI/Agri background for light mode */
+    background-image:
+      radial-gradient(rgba(15, 23, 42, 0.2) 2px, transparent 2px),
+      radial-gradient(circle at 80% 20%, rgba(21, 128, 61, 0.3) 0%, transparent 40%),
+      radial-gradient(circle at 20% 80%, rgba(13, 148, 136, 0.25) 0%, transparent 40%),
+      linear-gradient(to bottom right, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.15));
+    background-size: 32px 32px, 100vw 100vh, 100vw 100vh, 100vw 100vh;
+    background-position: 0 0, 0 0, 0 0, 0 0;
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
   }
 
   html,
