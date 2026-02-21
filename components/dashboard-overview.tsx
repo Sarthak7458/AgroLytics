@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { TrendingUp, Leaf, Droplets, Sprout } from 'lucide-react'
+import { TrendingUp, Leaf, Droplets, Sprout, MapPin } from 'lucide-react'
 import { useProfile } from '@/app/context/profile-context'
 import { supabase } from '@/lib/supabase'
+import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 
 // Using CSS variables from globals.css for theming
 const COLORS = [
@@ -18,6 +20,7 @@ const COLORS = [
 export function DashboardOverview() {
     const { profile } = useProfile()
     const [latestRec, setLatestRec] = useState<any>(null)
+    const [khetDetails, setKhetDetails] = useState<any>(null)
     const [isLoadingRec, setIsLoadingRec] = useState(true)
 
     useEffect(() => {
@@ -46,7 +49,19 @@ export function DashboardOverview() {
             }
         }
 
+        const fetchKhetDetails = () => {
+            try {
+                const storedDetails = localStorage.getItem("khetDetails")
+                if (storedDetails) {
+                    setKhetDetails(JSON.parse(storedDetails))
+                }
+            } catch (err) {
+                console.error("Failed to parse khet details", err)
+            }
+        }
+
         fetchLatestRecommendation()
+        fetchKhetDetails()
     }, [profile?.id])
 
     const yieldTrendData = [
@@ -87,38 +102,99 @@ export function DashboardOverview() {
         <div className="space-y-6 mt-16 pb-12">
 
             {/* Personalized Welcome Section */}
-            <div className="mb-8">
-                <h2 className="text-3xl font-bold text-foreground mb-2">
-                    Welcome back, {profile?.name || 'Farmer'}! 🌾
-                </h2>
-                <p className="text-muted-foreground mb-6">Here is an overview of your farm's performance and recent recommendations.</p>
-
-                {/* Recommendation Highlight */}
-                <Card className="p-6 bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800">
-                    <div className="flex items-start gap-4">
-                        <div className="p-3 bg-green-100 dark:bg-green-800 rounded-full">
-                            <Sprout className="w-6 h-6 text-green-700 dark:text-green-300" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-lg text-green-900 dark:text-green-100 mb-1">
-                                Latest AI Recommendation
-                            </h3>
-                            {isLoadingRec ? (
-                                <p className="text-sm text-muted-foreground animate-pulse">Checking latest data...</p>
-                            ) : latestRec ? (
-                                <div className="space-y-1">
-                                    <p className="text-foreground">
-                                        Based on your last scan, we recommend planting <span className="font-bold text-green-700 dark:text-green-400">{latestRec.recommended_crop}</span>.
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        Expected Profit: <span className="font-medium">₹{latestRec.expected_profit?.toLocaleString() || 'N/A'}</span> • Risk Level: <span className="font-medium">{latestRec.risk_level || 'Medium'}</span>
-                                    </p>
-                                </div>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">You haven't generated any crop recommendations recently. Go to the Recommendation tab to get started!</p>
-                            )}
-                        </div>
+            <div className="grid lg:grid-cols-3 gap-6 mb-8">
+                <Card className="col-span-1 border-none shadow-sm flex flex-col justify-center items-start p-6 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-900 dark:to-green-950/20">
+                    <div className="flex flex-col gap-1">
+                        <h2 className="text-3xl font-bold tracking-tight text-green-900 dark:text-green-400">
+                            Welcome back{profile?.name ? `, ${profile.name}` : ''}! 🌾
+                        </h2>
+                        <p className="text-muted-foreground mt-1">
+                            Here is an overview of your farm's performance and recent recommendations.
+                        </p>
                     </div>
+                </Card>
+
+                <Card className="col-span-1 border border-green-100 dark:border-green-900/40 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 dark:bg-green-400/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground flex justify-between items-center">
+                            <span>LATEST AI RECOMMENDATION</span>
+                            <div className="p-1.5 bg-green-100 dark:bg-green-900/40 rounded-full text-green-700 dark:text-green-400">
+                                <Leaf className="h-4 w-4" />
+                            </div>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {isLoadingRec ? (
+                            <div className="text-sm text-muted-foreground animate-pulse">Checking latest data...</div>
+                        ) : latestRec && latestRec.response ? (
+                            <div className="flex flex-col gap-2">
+                                <div className="text-2xl font-bold text-green-700 dark:text-green-500 capitalize">
+                                    {latestRec.response.recommended || "N/A"}
+                                </div>
+                                <div className="flex items-center gap-3 text-sm">
+                                    {latestRec.response.confidence && (
+                                        <Badge variant="outline" className="bg-green-50 dark:bg-slate-800 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                                            {latestRec.response.confidence}% Match
+                                        </Badge>
+                                    )}
+                                    {latestRec.response.expected_yield && (
+                                        <span className="text-muted-foreground flex items-center gap-1">
+                                            <TrendingUp className="h-3 w-3" /> {latestRec.response.expected_yield} Expected
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <span className="text-muted-foreground text-sm italic">No recent recommendations.</span>
+                                <Link href="/advisor">
+                                    <Badge variant="secondary" className="hover:bg-green-100 cursor-pointer">Get Advice →</Badge>
+                                </Link>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card className="col-span-1 border border-blue-100 dark:border-blue-900/40 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 dark:bg-blue-400/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground flex justify-between items-center">
+                            <span>MY KHET (FARM DETAILS)</span>
+                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/40 rounded-full text-blue-700 dark:text-blue-400">
+                                <MapPin className="h-4 w-4" />
+                            </div>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {khetDetails ? (
+                            <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                                <div>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Location</p>
+                                    <p className="font-medium text-foreground">{khetDetails.city || "N/A"}, {khetDetails.state || "N/A"}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Land Size</p>
+                                    <p className="font-medium text-foreground text-blue-700 dark:text-blue-400">{khetDetails.landSize ? `${khetDetails.landSize} Acres` : "N/A"}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Soil Type</p>
+                                    <p className="font-medium text-foreground capitalize">{khetDetails.soilType || "N/A"}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Irrigation</p>
+                                    <p className="font-medium text-foreground capitalize">{khetDetails.irrigationType || "N/A"}</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <span className="text-muted-foreground text-sm italic">No farm details found.</span>
+                                <Link href="/khet-details">
+                                    <Badge variant="secondary" className="hover:bg-blue-100 cursor-pointer text-blue-700">Add Farm Details →</Badge>
+                                </Link>
+                            </div>
+                        )}
+                    </CardContent>
                 </Card>
             </div>
 
