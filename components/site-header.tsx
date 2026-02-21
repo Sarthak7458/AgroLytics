@@ -48,7 +48,7 @@ export function SiteHeader() {
                                 <span className="sr-only">Toggle Menu</span>
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="w-[250px] sm:w-[300px] flex flex-col">
+                        <SheetContent side="left" className="w-[200px] sm:w-[240px] flex flex-col">
                             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                             <SheetDescription className="sr-only">Main navigation for the application.</SheetDescription>
 
