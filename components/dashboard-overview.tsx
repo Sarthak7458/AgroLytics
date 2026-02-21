@@ -198,58 +198,6 @@ export function DashboardOverview() {
                 </Card>
             </div>
 
-            <div className="text-center mb-8 pt-6 border-t border-border">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Platform Overview</h2>
-                <p className="text-muted-foreground text-sm">Aggregated data and trends across your farm</p>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="p-6 border-border hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <p className="text-sm text-muted-foreground mb-1">Total Yield</p>
-                            <p className="font-sans font-bold text-2xl text-foreground">45.2 T</p>
-                        </div>
-                        <TrendingUp className="h-8 w-8 text-primary opacity-70" />
-                    </div>
-                    <p className="text-xs text-primary font-medium">↑ 12% from last season</p>
-                </Card>
-
-                <Card className="p-6 border-border hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <p className="text-sm text-muted-foreground mb-1">Average Yield/Acre</p>
-                            <p className="font-sans font-bold text-2xl text-foreground">42.5 T</p>
-                        </div>
-                        <Leaf className="h-8 w-8 text-primary opacity-70" />
-                    </div>
-                    <p className="text-xs text-primary font-medium">↑ 8% from target</p>
-                </Card>
-
-                <Card className="p-6 border-border hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <p className="text-sm text-muted-foreground mb-1">NDVI Score</p>
-                            <p className="font-sans font-bold text-2xl text-foreground">0.82</p>
-                        </div>
-                        <TrendingUp className="h-8 w-8 text-accent opacity-70" />
-                    </div>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Healthy vegetation</p>
-                </Card>
-
-                <Card className="p-6 border-border hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <p className="text-sm text-muted-foreground mb-1">Water Usage</p>
-                            <p className="font-sans font-bold text-2xl text-foreground">1,240 mm</p>
-                        </div>
-                        <Droplets className="h-8 w-8 text-accent opacity-70" />
-                    </div>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Optimized usage</p>
-                </Card>
-            </div>
-
             {/* Charts Grid */}
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Yield Trend */}
