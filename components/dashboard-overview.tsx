@@ -16,17 +16,22 @@ const COLORS = [
     'oklch(0.75 0.15 85)',  // --warning
     'oklch(0.55 0.2 25)'    // --danger
 ]
-
 export function DashboardOverview() {
     const { profile } = useProfile()
     const [latestRec, setLatestRec] = useState<any>(null)
     const [khetDetails, setKhetDetails] = useState<any>(null)
     const [isLoadingRec, setIsLoadingRec] = useState(true)
 
+    // Dynamic Chart States
+    const [yieldTrendData, setYieldTrendData] = useState<any[]>([])
+    const [cropDistributionData, setCropDistributionData] = useState<any[]>([])
+    const [vegetationData, setVegetationData] = useState<any[]>([])
+    const [rainfallYieldData, setRainfallYieldData] = useState<any[]>([])
     useEffect(() => {
         const fetchLatestRecommendation = async () => {
             if (!profile?.id) {
                 setIsLoadingRec(false)
+                generateChartData(null) // Load default charts
                 return
             }
 
@@ -53,50 +58,91 @@ export function DashboardOverview() {
             try {
                 const storedDetails = localStorage.getItem("khetDetails")
                 if (storedDetails) {
-                    setKhetDetails(JSON.parse(storedDetails))
+                    const parsed = JSON.parse(storedDetails)
+                    setKhetDetails(parsed)
+                    generateChartData(parsed)
+                } else {
+                    generateChartData(null)
                 }
             } catch (err) {
                 console.error("Failed to parse khet details", err)
+                generateChartData(null)
             }
+        }
+
+        const generateChartData = (details: any) => {
+            // Default Baseline Parameters
+            let baseYield = 10
+            let crops = [
+                { name: 'Wheat', value: 35 },
+                { name: 'Rice', value: 30 },
+                { name: 'Corn', value: 20 },
+                { name: 'Cotton', value: 15 },
+            ]
+            let ndviBase = 0.65
+            let rainFallMultiplier = 1
+
+            if (details) {
+                // Land size scales yield (Assume 1.5 tons per acre on avg, random variance)
+                const acres = parseFloat(details.landSize) || 5;
+                baseYield = acres * 1.5;
+
+                // Location determines crops
+                const loc = details.location?.toLowerCase() || "";
+                if (loc.includes("north")) crops = [{ name: 'Wheat', value: 40 }, { name: 'Mustard', value: 30 }, { name: 'Sugarcane', value: 30 }];
+                else if (loc.includes("south")) crops = [{ name: 'Rice', value: 45 }, { name: 'Cotton', value: 35 }, { name: 'Spices', value: 20 }];
+                else if (loc.includes("east")) crops = [{ name: 'Rice', value: 50 }, { name: 'Jute', value: 30 }, { name: 'Tea', value: 20 }];
+                else if (loc.includes("west")) crops = [{ name: 'Cotton', value: 40 }, { name: 'Groundnut', value: 35 }, { name: 'Bajra', value: 25 }];
+                else if (loc.includes("central")) crops = [{ name: 'Soybean', value: 40 }, { name: 'Wheat', value: 35 }, { name: 'Gram', value: 25 }];
+
+                // Season affects rainfall
+                const season = details.season?.toLowerCase() || "";
+                if (season.includes("kharif")) rainFallMultiplier = 3.5; // High monsoon rain
+                else if (season.includes("rabi")) rainFallMultiplier = 0.8; // Low winter rain
+                else if (season.includes("zaid")) rainFallMultiplier = 0.2; // Very little summer rain
+
+                // Irrigation affects NDVI
+                const irrigation = details.irrigationType?.toLowerCase() || "";
+                if (irrigation.includes("irrigated") || irrigation.includes("drip") || irrigation.includes("tubewell")) {
+                    ndviBase = 0.80; // Healthier, stable
+                } else if (irrigation.includes("rainfed")) {
+                    ndviBase = 0.45; // Relies on monsoon, more volatile
+                }
+            }
+
+            // 1. Yield Trend Data
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+            setYieldTrendData(months.map((m, i) => ({
+                name: m,
+                yield: Math.max(0, parseFloat((baseYield * (0.8 + Math.random() * 0.4)).toFixed(1))),
+                target: Math.max(0, parseFloat((baseYield * 1.1).toFixed(1))) // Target is always 10% higher than average baseline
+            })));
+
+            // 2. Crop Distribution Data
+            setCropDistributionData(crops);
+
+            // 3. Vegetation Health (NDVI)
+            setVegetationData([1, 2, 3, 4, 5, 6].map(week => ({
+                name: `Week ${week}`,
+                value: Math.min(1.0, Math.max(0.1, parseFloat((ndviBase + (Math.random() * 0.2 - 0.1)).toFixed(2))))
+            })));
+
+            // 4. Rainfall vs Yield
+            setRainfallYieldData(months.map((m) => {
+                const rain = Math.max(0, Math.floor(40 * rainFallMultiplier * (0.5 + Math.random())));
+                return {
+                    name: m,
+                    rainfall: rain,
+                    yield: Math.max(0, parseFloat((baseYield * (0.7 + (rain / 200) + Math.random() * 0.2)).toFixed(1)))
+                }
+            }));
         }
 
         fetchLatestRecommendation()
         fetchKhetDetails()
     }, [profile?.id])
 
-    const yieldTrendData = [
-        { month: 'Jan', yield: 28, target: 30 },
-        { month: 'Feb', yield: 32, target: 30 },
-        { month: 'Mar', yield: 35, target: 35 },
-        { month: 'Apr', yield: 38, target: 38 },
-        { month: 'May', yield: 42, target: 40 },
-        { month: 'Jun', yield: 45, target: 45 },
-    ]
 
-    const cropDistribution = [
-        { name: 'Wheat', value: 35, color: COLORS[0] },
-        { name: 'Rice', value: 30, color: COLORS[1] },
-        { name: 'Corn', value: 20, color: COLORS[2] },
-        { name: 'Cotton', value: 15, color: COLORS[3] },
-    ]
-
-    const ndviTrendData = [
-        { date: 'Week 1', ndvi: 0.35 },
-        { date: 'Week 2', ndvi: 0.42 },
-        { date: 'Week 3', ndvi: 0.58 },
-        { date: 'Week 4', ndvi: 0.68 },
-        { date: 'Week 5', ndvi: 0.75 },
-        { date: 'Week 6', ndvi: 0.82 },
-    ]
-
-    const rainfallVsYield = [
-        { month: 'Jan', rainfall: 40, yield: 28 },
-        { month: 'Feb', rainfall: 50, yield: 32 },
-        { month: 'Mar', rainfall: 65, yield: 35 },
-        { month: 'Apr', rainfall: 85, yield: 38 },
-        { month: 'May', rainfall: 120, yield: 42 },
-        { month: 'Jun', rainfall: 150, yield: 45 },
-    ]
 
     return (
         <div className="space-y-6 mt-16 pb-12">
@@ -217,7 +263,7 @@ export function DashboardOverview() {
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={yieldTrendData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" opacity={0.5} stroke="var(--border)" />
-                                <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
                                 <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px', color: 'var(--foreground)' }}
@@ -238,7 +284,7 @@ export function DashboardOverview() {
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
-                                    data={cropDistribution}
+                                    data={cropDistributionData}
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
@@ -247,8 +293,8 @@ export function DashboardOverview() {
                                     fill="#8884d8"
                                     dataKey="value"
                                 >
-                                    {cropDistribution.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    {cropDistributionData.map((entry: any, index: number) => (
+                                        <Cell key={`cell-${index}`} fill={DEFAULT_CHART_COLORS[index % DEFAULT_CHART_COLORS.length]} />
                                     ))}
                                 </Pie>
                                 <Tooltip
@@ -265,15 +311,15 @@ export function DashboardOverview() {
                     <h3 className="font-sans font-semibold text-lg mb-4 text-foreground">Vegetation Health (NDVI)</h3>
                     <div className="flex-1 min-h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={ndviTrendData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <BarChart data={vegetationData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" opacity={0.5} stroke="var(--border)" />
-                                <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
                                 <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px', color: 'var(--foreground)' }}
                                     cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
                                 />
-                                <Bar dataKey="ndvi" fill="oklch(0.45 0.15 145)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="value" fill="oklch(0.45 0.15 145)" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -284,9 +330,9 @@ export function DashboardOverview() {
                     <h3 className="font-sans font-semibold text-lg mb-4 text-foreground">Rainfall vs Yield Correlation</h3>
                     <div className="flex-1 min-h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={rainfallVsYield} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <BarChart data={rainfallYieldData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" opacity={0.5} stroke="var(--border)" />
-                                <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
                                 <YAxis yAxisId="left" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
                                 <YAxis yAxisId="right" orientation="right" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
                                 <Tooltip
