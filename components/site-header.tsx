@@ -20,12 +20,12 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { cn } from "@/lib/utils";
 
 const steps = [
-    { name: "Dashboard", href: "/dashboard", isTranslationKey: false },
     { name: "nav.myKhet", href: "/khet-details", isTranslationKey: true },
     { name: "nav.recommendation", href: "/advisor", isTranslationKey: true },
     { name: "nav.market", href: "/market", isTranslationKey: true },
     { name: "nav.risk", href: "/risk-analysis", isTranslationKey: true },
     { name: "nav.seasons", href: "/seasons", isTranslationKey: true },
+    { name: "Dashboard", href: "/dashboard", isTranslationKey: false },
 ];
 
 export function SiteHeader() {
