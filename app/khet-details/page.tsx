@@ -27,6 +27,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MapPin, Calendar, Droplets, User, Tractor, Wallet, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/app/context/language-context";
+import { useProfile } from "@/app/context/profile-context";
+import { supabase } from "@/lib/supabase";
 
 
 // Schema for Khet Details
@@ -45,6 +47,7 @@ export default function KhetDetailsPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useLanguage();
+    const { profile } = useProfile();
 
     const form = useForm<KhetValues>({
         resolver: zodResolver(khetSchema),
@@ -53,7 +56,7 @@ export default function KhetDetailsPage() {
         },
     });
 
-    function onSubmit(data: KhetValues) {
+    async function onSubmit(data: KhetValues) {
         setIsLoading(true);
         console.log("Khet Details:", data);
 
@@ -71,11 +74,38 @@ export default function KhetDetailsPage() {
         // Save to localStorage for persistence
         localStorage.setItem("khetDetails", JSON.stringify(mappedData));
 
-        // Simulate processing and redirect to Advisor
-        setTimeout(() => {
-            router.push("/advisor");
-            setIsLoading(false);
-        }, 1000);
+        // Save to Supabase `farms` table
+        if (profile?.id) {
+            try {
+                const { data: farmData, error } = await supabase
+                    .from("farms")
+                    .insert({
+                        farmer_id: profile.id,
+                        region: data.region,
+                        season: data.season,
+                        irrigation_type: data.waterAccess,
+                        experience_level: data.experienceLevel,
+                        land_size: data.landSize[0],
+                        budget_range: data.budget,
+                    })
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error("Supabase farms insert error:", error.message, "Code:", error.code, "Details:", error.details);
+                } else if (farmData) {
+                    // Store farm ID in localStorage for linking recommendations later
+                    localStorage.setItem("currentFarmId", farmData.id);
+                    console.log("Farm saved to Supabase:", farmData.id);
+                }
+            } catch (err) {
+                console.error("Error saving farm to Supabase:", err);
+            }
+        }
+
+        // Redirect to Advisor
+        router.push("/advisor");
+        setIsLoading(false);
     }
 
     return (

@@ -6,6 +6,7 @@ import { ResultsPage } from "@/components/results-page";
 
 import { api, RecommendationResponse } from "@/lib/api";
 import { useLanguage } from "@/app/context/language-context";
+import { supabase } from "@/lib/supabase";
 
 type AppState = "history" | "input" | "loading" | "results" | "error";
 
@@ -63,6 +64,9 @@ export default function AdvisorPage() {
         const [response] = await Promise.all([apiCall, minLoadTime]);
         setResults(response);
         setAppState("results");
+
+        // Save recommendation to Supabase
+        await saveRecommendationToSupabase(response, data);
       } catch (error) {
         console.error("Error fetching recommendations:", error);
         setAppState("error");
@@ -71,6 +75,54 @@ export default function AdvisorPage() {
 
     fetchRecommendations();
   }, []);
+
+  // Save the top recommendation to Supabase `recommendations` table
+  const saveRecommendationToSupabase = async (
+    response: RecommendationResponse,
+    data: FormData
+  ) => {
+    try {
+      const profileStr = localStorage.getItem("userProfile");
+      const farmId = localStorage.getItem("currentFarmId");
+
+      if (!profileStr) {
+        return;
+      }
+
+      const profile = JSON.parse(profileStr);
+      if (!profile.id || !farmId) {
+        return;
+      }
+
+      const crop = response.recommended;
+      if (!crop) {
+        return;
+      }
+
+      const { error } = await supabase
+        .from("recommendations")
+        .insert({
+          farmer_id: profile.id,
+          farm_id: farmId,
+          recommended_crop: crop.name,
+          final_score: crop.finalScore,
+          expected_profit: crop.expectedProfit,
+          risk_level: crop.riskProfile?.level || "Medium",
+          confidence: crop.confidence,
+          season_used: data.season,
+          demand_trend: crop.marketTrend || null,
+          profit_score: crop.demandScore || null,
+        });
+
+      if (error) {
+        console.error("Supabase recommendation save error:", error.message, "Code:", error.code, "Details:", error.details);
+      } else {
+        console.log("Recommendation saved to Supabase");
+      }
+    } catch (err) {
+      console.error("Error saving recommendation:", err);
+    }
+  };
 
   const handleStartOver = () => {
     // In the linear workflow, start over might mean going back to Khet Details or just re-running
