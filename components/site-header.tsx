@@ -3,8 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
+import {
+    Sheet,
+    SheetContent,
+    SheetTrigger,
+    SheetTitle,
+    SheetDescription
+} from "@/components/ui/sheet";
 import { useProfile } from "@/app/context/profile-context";
 import { useLanguage } from "@/app/context/language-context";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -13,16 +20,16 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { cn } from "@/lib/utils";
 
 const steps = [
-    { name: "nav.myKhet", href: "/khet-details" },
-    { name: "nav.recommendation", href: "/advisor" },
-    { name: "nav.market", href: "/market" },
-    { name: "nav.risk", href: "/risk-analysis" },
-    { name: "nav.seasons", href: "/seasons" },
+    { name: "Dashboard", href: "/dashboard", isTranslationKey: false },
+    { name: "nav.myKhet", href: "/khet-details", isTranslationKey: true },
+    { name: "nav.recommendation", href: "/advisor", isTranslationKey: true },
+    { name: "nav.market", href: "/market", isTranslationKey: true },
+    { name: "nav.risk", href: "/risk-analysis", isTranslationKey: true },
+    { name: "nav.seasons", href: "/seasons", isTranslationKey: true },
 ];
 
 export function SiteHeader() {
     const pathname = usePathname();
-    const router = useRouter();
     const { profile } = useProfile();
     const { t } = useLanguage();
 
@@ -30,15 +37,40 @@ export function SiteHeader() {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
             <div className="w-full flex h-16 items-center justify-between px-4 md:px-6">
                 <div className="flex items-center gap-4 mr-6">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-primary hover:bg-accent md:mr-2"
-                        onClick={() => router.back()}
-                    >
-                        <ChevronLeft className="w-5 h-5" />
-                        <span className="sr-only">Back</span>
-                    </Button>
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-foreground hover:text-green-700 hover:bg-accent md:mr-2"
+                            >
+                                <Menu className="w-6 h-6" />
+                                <span className="sr-only">Toggle Menu</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+                            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                            <SheetDescription className="sr-only">Main navigation for the application.</SheetDescription>
+                            <nav className="flex flex-col gap-4 mt-8">
+                                {steps.map((step) => {
+                                    const isActive = pathname === step.href;
+                                    return (
+                                        <Link
+                                            key={step.href}
+                                            href={step.href}
+                                            className={cn(
+                                                "text-lg font-medium transition-colors hover:text-green-700 dark:hover:text-green-400 hover:bg-accent px-4 py-3 rounded-md",
+                                                isActive ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-bold" : "text-foreground"
+                                            )}
+                                        >
+                                            {step.isTranslationKey ? t(step.name) : step.name}
+                                        </Link>
+                                    );
+                                })}
+                            </nav>
+                        </SheetContent>
+                    </Sheet>
+
                     <Link href="/" className="flex items-center gap-2">
                         <div className="relative w-10 h-10 overflow-hidden rounded-full">
                             <Image src="/logo.jpg" alt="Agrolytics Logo" fill className="object-cover" />
@@ -47,23 +79,8 @@ export function SiteHeader() {
                     </Link>
                 </div>
 
-                <nav className="flex items-center gap-4 md:gap-6 flex-1 justify-center">
-                    {steps.map((step) => {
-                        const isActive = pathname === step.href;
-                        return (
-                            <Link
-                                key={step.href}
-                                href={step.href}
-                                className={cn(
-                                    "text-sm font-medium transition-colors hover:text-green-700 dark:hover:text-green-400 hover:bg-accent px-3 py-2 rounded-md",
-                                    isActive ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-bold" : "text-muted-foreground"
-                                )}
-                            >
-                                {t(step.name)}
-                            </Link>
-                        );
-                    })}
-                </nav>
+                <div className="flex flex-1"></div>
+
 
                 <div className="flex items-center gap-3">
                     <LanguageToggle />
