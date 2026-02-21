@@ -48,10 +48,18 @@ export function SiteHeader() {
                                 <span className="sr-only">Toggle Menu</span>
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+                        <SheetContent side="left" className="w-[250px] sm:w-[300px] flex flex-col">
                             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                             <SheetDescription className="sr-only">Main navigation for the application.</SheetDescription>
-                            <nav className="flex flex-col gap-4 mt-8">
+
+                            <div className="flex items-center gap-2 mb-4 mt-2">
+                                <div className="relative w-10 h-10 overflow-hidden rounded-full">
+                                    <Image src="/logo.jpg" alt="Agrolytics Logo" fill className="object-cover" />
+                                </div>
+                                <span className="text-xl font-bold text-green-800 dark:text-green-400 tracking-tight">Agrolytics</span>
+                            </div>
+
+                            <nav className="flex flex-col gap-2 mt-4">
                                 {steps.map((step) => {
                                     const isActive = pathname === step.href;
                                     return (
@@ -59,8 +67,10 @@ export function SiteHeader() {
                                             key={step.href}
                                             href={step.href}
                                             className={cn(
-                                                "text-lg font-medium transition-colors hover:text-green-700 dark:hover:text-green-400 hover:bg-accent px-4 py-3 rounded-md",
-                                                isActive ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-bold" : "text-foreground"
+                                                "text-lg font-medium transition-all px-4 py-3 rounded-md border border-transparent",
+                                                isActive
+                                                    ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-bold border-green-200 dark:border-green-800/50"
+                                                    : "text-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:border-black/10 dark:hover:border-white/10"
                                             )}
                                         >
                                             {step.isTranslationKey ? t(step.name) : step.name}
