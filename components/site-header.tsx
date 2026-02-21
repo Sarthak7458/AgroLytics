@@ -42,7 +42,7 @@ export function SiteHeader() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-foreground hover:text-green-700 hover:bg-accent md:mr-2"
+                                className="text-foreground hover:text-green-700 hover:bg-accent md:hidden"
                             >
                                 <Menu className="w-6 h-6" />
                                 <span className="sr-only">Toggle Menu</span>
@@ -87,6 +87,24 @@ export function SiteHeader() {
                         </div>
                         <span className="text-xl font-bold text-green-800 dark:text-green-400 tracking-tight hidden md:inline-block">Agrolytics</span>
                     </Link>
+
+                    <nav className="hidden md:flex items-center gap-6 ml-6">
+                        {steps.map((step) => {
+                            const isActive = pathname === step.href;
+                            return (
+                                <Link
+                                    key={step.href}
+                                    href={step.href}
+                                    className={cn(
+                                        "text-sm font-medium transition-colors hover:text-green-700 dark:hover:text-green-400",
+                                        isActive ? "text-green-700 dark:text-green-400 font-bold" : "text-muted-foreground"
+                                    )}
+                                >
+                                    {step.isTranslationKey ? t(step.name) : step.name}
+                                </Link>
+                            );
+                        })}
+                    </nav>
                 </div>
 
                 <div className="flex flex-1"></div>
