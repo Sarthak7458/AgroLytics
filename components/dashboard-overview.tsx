@@ -141,20 +141,20 @@ const monthToNum: Record<string, number> = {
 };
 
 const analyzeRisk = (crop: string, month: string) => {
-    let weatherRisk = { level: "Low", score: 30, message: "Favorable weather predicted." };
-    let marketRisk = { level: "Medium", score: 50, message: "Moderate price fluctuation expected." };
-    let diseaseRisk = { level: "Low", score: 20, message: "Standard prevention required." };
+    let weatherRisk = { level: "Low", score: 30, message: "Favorable weather predicted.", messageKey: "favorableWeather" };
+    let marketRisk = { level: "Medium", score: 50, message: "Moderate price fluctuation expected.", messageKey: "moderatePrice" };
+    let diseaseRisk = { level: "Low", score: 20, message: "Standard prevention required.", messageKey: "standardPrevention" };
     let overallRisk = "Low";
 
     const monthNum = monthToNum[month] || 0;
 
     if (cropSeasons[crop] && !cropSeasons[crop].includes(monthNum)) {
-        weatherRisk = { level: "High", score: 85, message: `High stress conditions for ${crop}.` };
-        diseaseRisk = { level: "High", score: 75, message: "Increased susceptibility to pests." };
+        weatherRisk = { level: "High", score: 85, message: `High stress conditions for ${crop}.`, messageKey: "highStress" };
+        diseaseRisk = { level: "High", score: 75, message: "Increased susceptibility to pests.", messageKey: "highPest" };
     }
 
     if (crop === "Tomato" || crop === "Onion") {
-        marketRisk = { level: "High", score: 85, message: "High price volatility historically." };
+        marketRisk = { level: "High", score: 85, message: "High price volatility historically.", messageKey: "highVolatility" };
     }
 
     const avgScore = (weatherRisk.score + marketRisk.score + diseaseRisk.score) / 3;
@@ -182,6 +182,7 @@ export function DashboardOverview() {
     const [marketData, setMarketData] = useState<any>(null);
     const [dashboardRisk, setDashboardRisk] = useState<any>(null);
     const [dashboardSeason, setDashboardSeason] = useState<any>(null);
+    const [dashboardSeasonCropName, setDashboardSeasonCropName] = useState<string>("");
     const [dashboardSeasonActivities, setDashboardSeasonActivities] = useState<any>(null);
     useEffect(() => {
         const fetchLatestRecommendation = async () => {
@@ -244,6 +245,9 @@ export function DashboardOverview() {
                     let currentSeasonData = seasonsData[seasonKey] || seasonsData["kharif"];
                     let selectedCrop = currentSeasonData.crops.find((c: any) => c.name.toLowerCase().includes(marketCrop.toLowerCase()));
                     if (!selectedCrop) selectedCrop = currentSeasonData.crops[0]; // fallback to first crop in season
+                    let cropNameKey = selectedCrop.name.toLowerCase();
+                    if (cropNameKey === 'gram') cropNameKey = 'chickpea';
+                    setDashboardSeasonCropName(cropNameKey);
                     setDashboardSeasonActivities(selectedCrop.activities);
 
                 } else {
@@ -251,6 +255,7 @@ export function DashboardOverview() {
                     setMarketData(getInitialMarketData("Wheat"));
                     setDashboardRisk(analyzeRisk("Wheat", "November"));
                     setDashboardSeason(SEASON_MAP["rabi"]);
+                    setDashboardSeasonCropName("wheat");
                     setDashboardSeasonActivities(seasonsData["rabi"].crops[0].activities);
                 }
             } catch (err) {
@@ -259,6 +264,7 @@ export function DashboardOverview() {
                 setMarketData(getInitialMarketData("Wheat"));
                 setDashboardRisk(analyzeRisk("Wheat", "November"));
                 setDashboardSeason(SEASON_MAP["rabi"]);
+                setDashboardSeasonCropName("wheat");
                 setDashboardSeasonActivities(seasonsData["rabi"].crops[0].activities);
             }
         }
@@ -267,10 +273,10 @@ export function DashboardOverview() {
             // Default Baseline Parameters
             let baseYield = 10
             let crops = [
-                { name: 'Wheat', value: 35 },
-                { name: 'Rice', value: 30 },
-                { name: 'Corn', value: 20 },
-                { name: 'Cotton', value: 15 },
+                { name: t('crop.wheat'), value: 35 },
+                { name: t('crop.rice'), value: 30 },
+                { name: t('crop.maize') !== 'crop.maize' ? t('crop.maize') : 'Corn', value: 20 },
+                { name: t('crop.cotton'), value: 15 },
             ]
             let ndviBase = 0.65
             let rainFallMultiplier = 1
@@ -282,11 +288,11 @@ export function DashboardOverview() {
 
                 // Location determines crops
                 const loc = details.location?.toLowerCase() || "";
-                if (loc.includes("north")) crops = [{ name: 'Wheat', value: 40 }, { name: 'Mustard', value: 30 }, { name: 'Sugarcane', value: 30 }];
-                else if (loc.includes("south")) crops = [{ name: 'Rice', value: 45 }, { name: 'Cotton', value: 35 }, { name: 'Spices', value: 20 }];
-                else if (loc.includes("east")) crops = [{ name: 'Rice', value: 50 }, { name: 'Jute', value: 30 }, { name: 'Tea', value: 20 }];
-                else if (loc.includes("west")) crops = [{ name: 'Cotton', value: 40 }, { name: 'Groundnut', value: 35 }, { name: 'Bajra', value: 25 }];
-                else if (loc.includes("central")) crops = [{ name: 'Soybean', value: 40 }, { name: 'Wheat', value: 35 }, { name: 'Gram', value: 25 }];
+                if (loc.includes("north")) crops = [{ name: t('crop.wheat'), value: 40 }, { name: t('crop.mustard'), value: 30 }, { name: t('crop.sugarcane'), value: 30 }];
+                else if (loc.includes("south")) crops = [{ name: t('crop.rice'), value: 45 }, { name: t('crop.cotton'), value: 35 }, { name: t('crop.spices') !== 'crop.spices' ? t('crop.spices') : 'Spices', value: 20 }];
+                else if (loc.includes("east")) crops = [{ name: t('crop.rice'), value: 50 }, { name: t('crop.jute') !== 'crop.jute' ? t('crop.jute') : 'Jute', value: 30 }, { name: t('crop.tea') !== 'crop.tea' ? t('crop.tea') : 'Tea', value: 20 }];
+                else if (loc.includes("west")) crops = [{ name: t('crop.cotton'), value: 40 }, { name: t('crop.groundnut') !== 'crop.groundnut' ? t('crop.groundnut') : 'Groundnut', value: 35 }, { name: t('crop.bajra'), value: 25 }];
+                else if (loc.includes("central")) crops = [{ name: t('crop.soybean'), value: 40 }, { name: t('crop.wheat'), value: 35 }, { name: t('crop.gram') !== 'crop.gram' ? t('crop.gram') : 'Gram', value: 25 }];
 
                 // Season affects rainfall
                 const season = details.season?.toLowerCase() || "";
@@ -418,7 +424,7 @@ export function DashboardOverview() {
                             <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                                 <div>
                                     <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">{t('dashboard.location')}</p>
-                                    <p className="font-medium text-foreground capitalize">{khetDetails.location || "N/A"}</p>
+                                    <p className="font-medium text-foreground capitalize">{khetDetails.location ? (t(`region.${khetDetails.location.toLowerCase().replace(' india', '')}`) !== `region.${khetDetails.location.toLowerCase().replace(' india', '')}` ? t(`region.${khetDetails.location.toLowerCase().replace(' india', '')}`) : khetDetails.location) : "N/A"}</p>
                                 </div>
                                 <div>
                                     <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">{t('dashboard.landSize')}</p>
@@ -556,7 +562,7 @@ export function DashboardOverview() {
                                 {t(`seasons.${dashboardSeason.name.toLowerCase().replace(' season', '')}`)} {t('dashboard.season')}
                             </h3>
                             <Badge variant="outline" className="text-yellow-700 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800 text-xs truncate">
-                                {t(`seasons.period.${dashboardSeason.period.toLowerCase().replace(' - ', 'To')}`) || dashboardSeason.period}
+                                {t(`seasons.period.${dashboardSeason.period.toLowerCase().replace(' - ', 'To')}`) !== `seasons.period.${dashboardSeason.period.toLowerCase().replace(' - ', 'To')}` ? t(`seasons.period.${dashboardSeason.period.toLowerCase().replace(' - ', 'To')}`) : dashboardSeason.period}
                             </Badge>
                         </div>
 
@@ -568,10 +574,10 @@ export function DashboardOverview() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between gap-2 mb-1">
-                                            <h4 className="font-semibold text-sm truncate">{t(`seasons.activity.${act.title.toLowerCase().replace(/\s+/g, '')}`) !== `seasons.activity.${act.title.toLowerCase().replace(/\s+/g, '')}` ? t(`seasons.activity.${act.title.toLowerCase().replace(/\s+/g, '')}`) : act.title}</h4>
-                                            <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 bg-background rounded-full border border-border shrink-0">{t(`seasons.time.${act.time.toLowerCase().replace(/\s+/g, '')}`) !== `seasons.time.${act.time.toLowerCase().replace(/\s+/g, '')}` ? t(`seasons.time.${act.time.toLowerCase().replace(/\s+/g, '')}`) : act.time}</span>
+                                            <h4 className="font-semibold text-sm truncate">{t(`act.${dashboardSeasonCropName}.${idx}.title`) !== `act.${dashboardSeasonCropName}.${idx}.title` ? t(`act.${dashboardSeasonCropName}.${idx}.title`) : act.title}</h4>
+                                            <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 bg-background rounded-full border border-border shrink-0">{t(`act.${dashboardSeasonCropName}.${idx}.time`) !== `act.${dashboardSeasonCropName}.${idx}.time` ? t(`act.${dashboardSeasonCropName}.${idx}.time`) : act.time}</span>
                                         </div>
-                                        <p className="text-xs text-muted-foreground line-clamp-2">{t(`seasons.desc.${act.title.toLowerCase().replace(/\s+/g, '')}`) !== `seasons.desc.${act.title.toLowerCase().replace(/\s+/g, '')}` ? t(`seasons.desc.${act.title.toLowerCase().replace(/\s+/g, '')}`) : act.desc}</p>
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{t(`act.${dashboardSeasonCropName}.${idx}.desc`) !== `act.${dashboardSeasonCropName}.${idx}.desc` ? t(`act.${dashboardSeasonCropName}.${idx}.desc`) : act.desc}</p>
                                     </div>
                                 </div>
                             ))}

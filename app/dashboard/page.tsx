@@ -13,16 +13,7 @@ export default function DashboardPage() {
                 <div className="max-w-6xl mx-auto">
                     <DashboardOverview />
 
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1, duration: 1 }}
-                        className="mt-16 text-center"
-                    >
-                        <p className="text-sm text-gray-400 dark:text-muted-foreground">
-                            {t("dashboard.footer")}
-                        </p>
-                    </motion.div>
+
                 </div>
             </main>
         </div>
