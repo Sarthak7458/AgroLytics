@@ -87,8 +87,11 @@ export function SiteHeader() {
                         </div>
                         <span className="text-xl font-bold text-green-800 dark:text-green-400 tracking-tight hidden md:inline-block">Agrolytics</span>
                     </Link>
+                </div>
 
-                    <nav className="hidden md:flex items-center gap-6 ml-6">
+                <div className="flex flex-1 justify-center">
+                    {/* Centered Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-8">
                         {steps.map((step) => {
                             const isActive = pathname === step.href;
                             return (
@@ -96,8 +99,9 @@ export function SiteHeader() {
                                     key={step.href}
                                     href={step.href}
                                     className={cn(
-                                        "text-sm font-medium transition-colors hover:text-green-700 dark:hover:text-green-400",
-                                        isActive ? "text-green-700 dark:text-green-400 font-bold" : "text-muted-foreground"
+                                        "text-[15px] font-medium transition-colors hover:text-green-700 dark:hover:text-green-400 relative py-1",
+                                        isActive ? "text-green-700 dark:text-green-400 font-bold" : "text-muted-foreground",
+                                        isActive && "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-green-600 dark:after:bg-green-500 after:rounded-full"
                                     )}
                                 >
                                     {step.isTranslationKey ? t(step.name) : step.name}
@@ -106,8 +110,6 @@ export function SiteHeader() {
                         })}
                     </nav>
                 </div>
-
-                <div className="flex flex-1"></div>
 
 
                 <div className="flex items-center gap-3">
