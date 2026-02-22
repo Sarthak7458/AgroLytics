@@ -150,18 +150,16 @@ export function DashboardOverview() {
         <div className="space-y-6 mt-16 pb-12">
 
             {/* Personalized Welcome Section */}
-            <div className="grid lg:grid-cols-3 gap-6 mb-8">
-                <Card className="col-span-1 border-none shadow-sm flex flex-col justify-center items-start p-6 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-900 dark:to-green-950/20">
-                    <div className="flex flex-col gap-1">
-                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-green-900 dark:text-green-400">
-                            Welcome back{profile?.name ? `, ${profile.name}` : ''}! 🌾
-                        </h2>
-                        <p className="text-muted-foreground mt-1">
-                            Here is an overview of your farm's performance and recent recommendations.
-                        </p>
-                    </div>
-                </Card>
+            <div className="mb-8 pl-1">
+                <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-green-900 dark:text-green-400 mb-2">
+                    Welcome back{profile?.name ? `, ${profile.name}` : ''}! 🌾
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                    Here is an overview of your farm's performance and recent recommendations.
+                </p>
+            </div>
 
+            <div className="grid lg:grid-cols-2 gap-6 mb-8">
                 <Card className="col-span-1 border border-green-100 dark:border-green-900/40 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 dark:bg-green-400/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
                     <CardHeader className="pb-2">
