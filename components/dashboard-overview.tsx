@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { TrendingUp, Leaf, Droplets, Sprout, MapPin } from 'lucide-react'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
+import { TrendingUp, Leaf, Droplets, Sprout, MapPin, ArrowUpRight, ArrowDownRight, Bug, CloudRain, AlertTriangle } from 'lucide-react'
 import { useProfile } from '@/app/context/profile-context'
 import { supabase } from '@/lib/supabase'
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +18,79 @@ const COLORS = [
 ]
 
 const DEFAULT_CHART_COLORS = ['#16a34a', '#2563eb', '#ea580c', '#eab308', '#8b5cf6']
+
+// --- Mock Market Data Generation (Ported from Market page) ---
+const generateHistory = (base: number, volatility: number, count: number, type: 'daily' | 'monthly') => {
+    let current = base;
+    const data = [];
+    const now = new Date();
+
+    for (let i = count; i >= 0; i--) {
+        const date = new Date();
+        if (type === 'daily') date.setDate(now.getDate() - i);
+        else date.setMonth(now.getMonth() - i);
+
+        const change = (Math.random() - 0.5) * volatility;
+        current += change;
+        if (current < 100) current = 100;
+
+        const baseItem: any = { price: Math.round(current) };
+        if (type === 'daily') {
+            baseItem.date = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+        } else {
+            baseItem.month = date.toLocaleDateString('en-US', { month: 'short' });
+        }
+        data.push(baseItem);
+    }
+    return data;
+};
+
+const getInitialMarketData = (cropName: string) => {
+    const bases: Record<string, number> = { "Wheat": 2550, "Rice": 4200, "Cotton": 7800, "Sugarcane": 355, "Tomato": 3500, "Onion": 2200, "Potato": 1500, "Maize": 2300, "Soybean": 4800, "Turmeric": 13500 };
+    const basePrice = bases[cropName] || 2500;
+    const history6M = generateHistory(basePrice, basePrice * 0.05, 6, 'monthly');
+    return { crop: cropName, price: basePrice, trend: (Math.random() * 10) - 3, history: history6M };
+};
+
+// --- Mock Risk Analysis (Ported from Risk Analysis page) ---
+const cropSeasons: Record<string, number[]> = {
+    "Wheat": [9, 10, 11], // Oct-Dec (Rabi)
+    "Rice": [5, 6, 7],    // June-Aug (Kharif)
+    "Cotton": [4, 5, 6],  // May-July
+    "Sugarcane": [0, 1, 2, 9, 10], // Jan-Mar or Oct-Nov
+    "Tomato": [0, 1, 5, 6, 7, 8, 9, 10],
+    "Onion": [5, 6, 9, 10, 0, 1],
+};
+
+const monthToNum: Record<string, number> = {
+    "January": 0, "February": 1, "March": 2, "April": 3, "May": 4, "June": 5,
+    "July": 6, "August": 7, "September": 8, "October": 9, "November": 10, "December": 11
+};
+
+const analyzeRisk = (crop: string, month: string) => {
+    let weatherRisk = { level: "Low", score: 30, message: "Favorable weather predicted." };
+    let marketRisk = { level: "Medium", score: 50, message: "Moderate price fluctuation expected." };
+    let diseaseRisk = { level: "Low", score: 20, message: "Standard prevention required." };
+    let overallRisk = "Low";
+
+    const monthNum = monthToNum[month] || 0;
+
+    if (cropSeasons[crop] && !cropSeasons[crop].includes(monthNum)) {
+        weatherRisk = { level: "High", score: 85, message: `High stress conditions for ${crop}.` };
+        diseaseRisk = { level: "High", score: 75, message: "Increased susceptibility to pests." };
+    }
+
+    if (crop === "Tomato" || crop === "Onion") {
+        marketRisk = { level: "High", score: 85, message: "High price volatility historically." };
+    }
+
+    const avgScore = (weatherRisk.score + marketRisk.score + diseaseRisk.score) / 3;
+    if (avgScore > 70) overallRisk = "High";
+    else if (avgScore > 40) overallRisk = "Medium";
+
+    return { weatherRisk, marketRisk, diseaseRisk, overallRisk, avgScore };
+};
+
 export function DashboardOverview() {
     const { profile } = useProfile()
     const [latestRec, setLatestRec] = useState<any>(null)
@@ -29,6 +102,10 @@ export function DashboardOverview() {
     const [cropDistributionData, setCropDistributionData] = useState<any[]>([])
     const [vegetationData, setVegetationData] = useState<any[]>([])
     const [rainfallYieldData, setRainfallYieldData] = useState<any[]>([])
+
+    // Market & Risk States
+    const [marketData, setMarketData] = useState<any>(null);
+    const [dashboardRisk, setDashboardRisk] = useState<any>(null);
     useEffect(() => {
         const fetchLatestRecommendation = async () => {
             if (!profile?.id) {
@@ -63,12 +140,35 @@ export function DashboardOverview() {
                     const parsed = JSON.parse(storedDetails)
                     setKhetDetails(parsed)
                     generateChartData(parsed)
+
+                    // Derive crop for market data based on season/location
+                    let marketCrop = "Wheat";
+                    const loc = parsed.location ? parsed.location.toLowerCase() : "";
+                    const season = parsed.season ? parsed.season.toLowerCase() : "";
+
+                    if (season === "kharif" || loc.includes("south")) marketCrop = "Rice";
+                    else if (loc.includes("west")) marketCrop = "Cotton";
+                    else if (loc.includes("central")) marketCrop = "Soybean";
+
+                    setMarketData(getInitialMarketData(marketCrop));
+
+                    // Derive a dummy month for the risk analysis based on season
+                    let sowingMonth = "July"; // Default Kharif
+                    if (season === "rabi") sowingMonth = "November";
+                    else if (season === "zaid") sowingMonth = "April";
+
+                    setDashboardRisk(analyzeRisk(marketCrop, sowingMonth));
+
                 } else {
                     generateChartData(null)
+                    setMarketData(getInitialMarketData("Wheat"));
+                    setDashboardRisk(analyzeRisk("Wheat", "November"));
                 }
             } catch (err) {
                 console.error("Failed to parse khet details", err)
                 generateChartData(null)
+                setMarketData(getInitialMarketData("Wheat"));
+                setDashboardRisk(analyzeRisk("Wheat", "November"));
             }
         }
 
@@ -306,47 +406,104 @@ export function DashboardOverview() {
                     </div>
                 </Card>
 
-                {/* NDVI Trend */}
-                <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow">
-                    <h3 className="font-sans font-semibold text-lg mb-4 text-foreground">Vegetation Health (NDVI)</h3>
-                    <div className="flex-1 min-h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={vegetationData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" opacity={0.5} stroke="var(--border)" />
-                                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px', color: 'var(--foreground)' }}
-                                    cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
-                                />
-                                <Bar dataKey="value" fill="oklch(0.45 0.15 145)" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </Card>
-
-                {/* Rainfall vs Yield */}
-                <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow">
-                    <h3 className="font-sans font-semibold text-lg mb-4 text-foreground">Rainfall vs Yield Correlation</h3>
-                    <div className="flex-1 min-h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={rainfallYieldData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" opacity={0.5} stroke="var(--border)" />
-                                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis yAxisId="left" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis yAxisId="right" orientation="right" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '8px', color: 'var(--foreground)' }}
-                                    cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
-                                />
-                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                <Bar yAxisId="left" dataKey="rainfall" fill="oklch(0.55 0.12 145)" radius={[4, 4, 0, 0]} name="Rainfall (mm)" />
-                                <Bar yAxisId="right" dataKey="yield" fill="oklch(0.45 0.15 145)" radius={[4, 4, 0, 0]} name="Yield (T)" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </Card>
+                {/* Market Trend Extension as a Card */}
+                {marketData && (
+                    <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow">
+                        <h3 className="font-sans font-semibold text-lg mb-4 text-foreground flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-500" />
+                            Market Trend: {marketData.crop}
+                        </h3>
+                        <div className="flex-1 flex flex-col">
+                            <div className="flex justify-between items-end mb-4">
+                                <div>
+                                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Current Price</h3>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-3xl font-bold text-foreground">₹{Math.floor(marketData.price).toLocaleString()}</span>
+                                        <span className="text-xs font-medium text-muted-foreground">/ quintal</span>
+                                    </div>
+                                </div>
+                                <div className={`flex items-center gap-1 ${marketData.trend >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                                    {marketData.trend >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                                    <span className="font-bold text-base">{Math.abs(marketData.trend).toFixed(1)}%</span>
+                                    <span className="text-muted-foreground text-xs ml-1 hidden sm:inline">past 6 mo</span>
+                                </div>
+                            </div>
+                            <div className="flex-1 min-h-[220px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={marketData.history} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="colorMarketPrice" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor={marketData.trend >= 0 ? "#16a34a" : "#dc2626"} stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor={marketData.trend >= 0 ? "#16a34a" : "#dc2626"} stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} stroke="var(--border)" />
+                                        <XAxis dataKey="month" axisLine={false} tickLine={false} fontSize={12} stroke="var(--muted-foreground)" />
+                                        <YAxis axisLine={false} tickLine={false} fontSize={12} stroke="var(--muted-foreground)" domain={['auto', 'auto']} width={40} />
+                                        <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--card)' }} />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="price"
+                                            stroke={marketData.trend >= 0 ? "#16a34a" : "#dc2626"}
+                                            strokeWidth={3}
+                                            fillOpacity={1}
+                                            fill="url(#colorMarketPrice)"
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </Card>
+                )}
             </div>
+
+            {/* Risk Analysis Extension */}
+            {dashboardRisk && (
+                <div className="mt-8">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-2">
+                        <AlertTriangle className={`w-6 h-6 ${dashboardRisk.overallRisk === "High" ? "text-red-500" : dashboardRisk.overallRisk === "Medium" ? "text-orange-500" : "text-green-500"}`} />
+                        Risk Analysis
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Weather Risk */}
+                        <Card className="border-border shadow-sm flex flex-col p-5">
+                            <h3 className="text-sm font-medium flex items-center gap-2 mb-2 text-muted-foreground uppercase tracking-wider">
+                                <CloudRain className="w-4 h-4 text-blue-500" /> Weather Risk
+                            </h3>
+                            <div className="text-3xl font-bold mb-1">{dashboardRisk.weatherRisk.level}</div>
+                            <p className="text-sm text-foreground mb-4">{dashboardRisk.weatherRisk.message}</p>
+                            <div className="w-full bg-blue-100 dark:bg-blue-900/30 h-2 mt-auto rounded-full overflow-hidden">
+                                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${dashboardRisk.weatherRisk.score}%` }}></div>
+                            </div>
+                        </Card>
+
+                        {/* Market Risk */}
+                        <Card className="border-border shadow-sm flex flex-col p-5">
+                            <h3 className="text-sm font-medium flex items-center gap-2 mb-2 text-muted-foreground uppercase tracking-wider">
+                                <TrendingUp className="w-4 h-4 text-green-500" /> Market Risk
+                            </h3>
+                            <div className="text-3xl font-bold mb-1">{dashboardRisk.marketRisk.level}</div>
+                            <p className="text-sm text-foreground mb-4">{dashboardRisk.marketRisk.message}</p>
+                            <div className="w-full bg-green-100 dark:bg-green-900/30 h-2 mt-auto rounded-full overflow-hidden">
+                                <div className="bg-green-500 h-2 rounded-full" style={{ width: `${dashboardRisk.marketRisk.score}%` }}></div>
+                            </div>
+                        </Card>
+
+                        {/* Disease Risk */}
+                        <Card className="border-border shadow-sm flex flex-col p-5">
+                            <h3 className="text-sm font-medium flex items-center gap-2 mb-2 text-muted-foreground uppercase tracking-wider">
+                                <Bug className="w-4 h-4 text-red-500" /> Disease Risk
+                            </h3>
+                            <div className="text-3xl font-bold mb-1">{dashboardRisk.diseaseRisk.level}</div>
+                            <p className="text-sm text-foreground mb-4">{dashboardRisk.diseaseRisk.message}</p>
+                            <div className="w-full bg-red-100 dark:bg-red-900/30 h-2 mt-auto rounded-full overflow-hidden">
+                                <div className="bg-red-500 h-2 rounded-full" style={{ width: `${dashboardRisk.diseaseRisk.score}%` }}></div>
+                            </div>
+                        </Card>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
