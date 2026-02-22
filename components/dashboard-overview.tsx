@@ -8,6 +8,8 @@ import { useProfile } from '@/app/context/profile-context'
 import { supabase } from '@/lib/supabase'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { useLanguage } from '@/app/context/language-context'
+import { translations } from '@/lib/translations'
 
 // Using CSS variables from globals.css for theming
 const COLORS = [
@@ -163,6 +165,8 @@ const analyzeRisk = (crop: string, month: string) => {
 };
 
 export function DashboardOverview() {
+    const { t } = useLanguage();
+
     const { profile } = useProfile()
     const [latestRec, setLatestRec] = useState<any>(null)
     const [khetDetails, setKhetDetails] = useState<any>(null)
@@ -339,10 +343,10 @@ export function DashboardOverview() {
             {/* Personalized Welcome Section */}
             <div className="mb-8 pl-1">
                 <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-green-900 dark:text-green-400 mb-2">
-                    Welcome back{profile?.name ? `, ${profile.name}` : ''}! 🌾
+                    {t('dashboard.welcomeBack').replace('!', '')}{profile?.name ? `, ${profile.name}` : ''}! 🌾
                 </h2>
                 <p className="text-muted-foreground text-lg">
-                    Here is an overview of your farm's performance and recent recommendations.
+                    {t('dashboard.overviewText')}
                 </p>
             </div>
 
@@ -351,7 +355,7 @@ export function DashboardOverview() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 dark:bg-green-400/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex justify-between items-center">
-                            <span>LATEST AI RECOMMENDATION</span>
+                            <span>{t('dashboard.latestAiRec')}</span>
                             <div className="p-1.5 bg-green-100 dark:bg-green-900/40 rounded-full text-green-700 dark:text-green-400">
                                 <Leaf className="h-4 w-4" />
                             </div>
@@ -382,16 +386,16 @@ export function DashboardOverview() {
                             <div className="flex flex-col gap-3">
                                 <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-100 dark:border-amber-900/50">
                                     <p className="text-sm text-amber-800 dark:text-amber-400 font-medium mb-1 flex items-center gap-1.5">
-                                        <Leaf className="w-3.5 h-3.5" /> Quick Tip
+                                        <Leaf className="w-3.5 h-3.5" /> {t('dashboard.quickTip')}
                                     </p>
                                     <p className="text-xs text-amber-700/80 dark:text-amber-500/80 leading-relaxed">
-                                        For optimal yields, rotate crops to maintain soil health. Consider planting nitrogen-fixing legumes before heavy feeders like corn or wheat.
+                                        {t('dashboard.defaultTip')}
                                     </p>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground text-xs italic">Need a personalized plan?</span>
+                                    <span className="text-muted-foreground text-xs italic">{t('dashboard.needPlan')}</span>
                                     <Link href="/advisor">
-                                        <Badge variant="secondary" className="hover:bg-green-100 cursor-pointer shadow-sm text-xs py-1">Get AI Advice →</Badge>
+                                        <Badge variant="secondary" className="hover:bg-green-100 cursor-pointer shadow-sm text-xs py-1">{t('dashboard.getAiAdvice')}</Badge>
                                     </Link>
                                 </div>
                             </div>
@@ -403,7 +407,7 @@ export function DashboardOverview() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 dark:bg-blue-400/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex justify-between items-center">
-                            <span>MY KHET (FARM DETAILS)</span>
+                            <span>{t('dashboard.myKhetTitle')}</span>
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/40 rounded-full text-blue-700 dark:text-blue-400">
                                 <MapPin className="h-4 w-4" />
                             </div>
@@ -413,27 +417,27 @@ export function DashboardOverview() {
                         {khetDetails ? (
                             <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                                 <div>
-                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Location</p>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">{t('dashboard.location')}</p>
                                     <p className="font-medium text-foreground capitalize">{khetDetails.location || "N/A"}</p>
                                 </div>
                                 <div>
-                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Land Size</p>
-                                    <p className="font-medium text-foreground text-blue-700 dark:text-blue-400">{khetDetails.landSize ? `${khetDetails.landSize} Acres` : "N/A"}</p>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">{t('dashboard.landSize')}</p>
+                                    <p className="font-medium text-foreground text-blue-700 dark:text-blue-400">{khetDetails.landSize ? `${khetDetails.landSize} ${t('khet.acres')}` : "N/A"}</p>
                                 </div>
                                 <div>
-                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Season</p>
-                                    <p className="font-medium text-foreground capitalize">{khetDetails.season || "N/A"}</p>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">{t('dashboard.season')}</p>
+                                    <p className="font-medium text-foreground capitalize">{khetDetails.season ? t(`khet.${khetDetails.season.toLowerCase()}`) : "N/A"}</p>
                                 </div>
                                 <div>
-                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">Irrigation</p>
-                                    <p className="font-medium text-foreground capitalize">{khetDetails.irrigationType || "N/A"}</p>
+                                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">{t('dashboard.irrigation')}</p>
+                                    <p className="font-medium text-foreground capitalize">{khetDetails.irrigationType === 'Rainfed' ? t('khet.rainfed') : (khetDetails.irrigationType === 'Irrigated' ? t('khet.irrigated') : khetDetails.irrigationType || "N/A")}</p>
                                 </div>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2">
-                                <span className="text-muted-foreground text-sm italic">No farm details found.</span>
+                                <span className="text-muted-foreground text-sm italic">{t('dashboard.noFarmDetails')}</span>
                                 <Link href="/khet-details">
-                                    <Badge variant="secondary" className="hover:bg-blue-100 cursor-pointer text-blue-700">Add Farm Details →</Badge>
+                                    <Badge variant="secondary" className="hover:bg-blue-100 cursor-pointer text-blue-700">{t('dashboard.addFarmDetails')}</Badge>
                                 </Link>
                             </div>
                         )}
@@ -445,7 +449,7 @@ export function DashboardOverview() {
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Yield Trend */}
                 <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow">
-                    <h3 className="font-sans font-semibold text-lg mb-4 text-foreground">Yield Trend</h3>
+                    <h3 className="font-sans font-semibold text-lg mb-4 text-foreground">{t('dashboard.yieldTrend')}</h3>
                     <div className="flex-1 min-h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={yieldTrendData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -466,7 +470,7 @@ export function DashboardOverview() {
 
                 {/* Crop Distribution */}
                 <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow">
-                    <h3 className="font-sans font-semibold text-lg mb-4 text-foreground">Crop Distribution</h3>
+                    <h3 className="font-sans font-semibold text-lg mb-4 text-foreground">{t('dashboard.cropDistribution')}</h3>
                     <div className="flex-1 min-h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -498,21 +502,21 @@ export function DashboardOverview() {
                     <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow">
                         <h3 className="font-sans font-semibold text-lg mb-4 text-foreground flex items-center gap-2">
                             <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-500" />
-                            Market Trend: {marketData.crop}
+                            {t('dashboard.marketTrend')}: {t(`crop.${marketData.crop.toLowerCase()}`) || marketData.crop}
                         </h3>
                         <div className="flex-1 flex flex-col">
                             <div className="flex justify-between items-end mb-4">
                                 <div>
-                                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Current Price</h3>
+                                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{t('dashboard.currentPrice')}</h3>
                                     <div className="flex items-baseline gap-1">
                                         <span className="text-3xl font-bold text-foreground">₹{Math.floor(marketData.price).toLocaleString()}</span>
-                                        <span className="text-xs font-medium text-muted-foreground">/ quintal</span>
+                                        <span className="text-xs font-medium text-muted-foreground">{t('dashboard.quintal')}</span>
                                     </div>
                                 </div>
                                 <div className={`flex items-center gap-1 ${marketData.trend >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
                                     {marketData.trend >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
                                     <span className="font-bold text-base">{Math.abs(marketData.trend).toFixed(1)}%</span>
-                                    <span className="text-muted-foreground text-xs ml-1 hidden sm:inline">past 6 mo</span>
+                                    <span className="text-muted-foreground text-xs ml-1 hidden sm:inline">{t('dashboard.past6Mo')}</span>
                                 </div>
                             </div>
                             <div className="flex-1 min-h-[220px]">
@@ -549,10 +553,10 @@ export function DashboardOverview() {
                         <div className="flex justify-between items-center mb-4 gap-2">
                             <h3 className="font-sans font-semibold text-lg text-foreground flex items-center gap-2 shrink-0">
                                 <Calendar className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
-                                {dashboardSeason.name}
+                                {t(`seasons.${dashboardSeason.name.toLowerCase().replace(' season', '')}`)} {t('dashboard.season')}
                             </h3>
                             <Badge variant="outline" className="text-yellow-700 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800 text-xs truncate">
-                                {dashboardSeason.period}
+                                {t(`seasons.period.${dashboardSeason.period.toLowerCase().replace(' - ', 'To')}`) || dashboardSeason.period}
                             </Badge>
                         </div>
 
@@ -564,19 +568,19 @@ export function DashboardOverview() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between gap-2 mb-1">
-                                            <h4 className="font-semibold text-sm truncate">{act.title}</h4>
-                                            <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 bg-background rounded-full border border-border shrink-0">{act.time}</span>
+                                            <h4 className="font-semibold text-sm truncate">{t(`seasons.activity.${act.title.toLowerCase().replace(/\s+/g, '')}`) !== `seasons.activity.${act.title.toLowerCase().replace(/\s+/g, '')}` ? t(`seasons.activity.${act.title.toLowerCase().replace(/\s+/g, '')}`) : act.title}</h4>
+                                            <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 bg-background rounded-full border border-border shrink-0">{t(`seasons.time.${act.time.toLowerCase().replace(/\s+/g, '')}`) !== `seasons.time.${act.time.toLowerCase().replace(/\s+/g, '')}` ? t(`seasons.time.${act.time.toLowerCase().replace(/\s+/g, '')}`) : act.time}</span>
                                         </div>
-                                        <p className="text-xs text-muted-foreground line-clamp-2">{act.desc}</p>
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{t(`seasons.desc.${act.title.toLowerCase().replace(/\s+/g, '')}`) !== `seasons.desc.${act.title.toLowerCase().replace(/\s+/g, '')}` ? t(`seasons.desc.${act.title.toLowerCase().replace(/\s+/g, '')}`) : act.desc}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
                         <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
-                            <span className="text-xs text-muted-foreground">Based on your {marketData?.crop || "crop"} selection</span>
+                            <span className="text-xs text-muted-foreground">{t('dashboard.basedOnSelection').replace('{crop}', t(`crop.${marketData?.crop.toLowerCase()}`) || marketData?.crop || "crop")}</span>
                             <Link href="/seasons" className="text-xs flex items-center gap-1 font-medium text-yellow-600 hover:text-yellow-700 dark:text-yellow-500 dark:hover:text-yellow-400 transition-colors">
-                                Full Guide <ArrowRight className="w-3 h-3" />
+                                {t('dashboard.fullGuide')} <ArrowRight className="w-3 h-3" />
                             </Link>
                         </div>
                     </Card>
@@ -588,17 +592,17 @@ export function DashboardOverview() {
                 <div className="mt-8">
                     <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-2">
                         <AlertTriangle className={`w-6 h-6 ${dashboardRisk.overallRisk === "High" ? "text-red-500" : dashboardRisk.overallRisk === "Medium" ? "text-orange-500" : "text-green-500"}`} />
-                        Risk Analysis
+                        {t('dashboard.riskAnalysisTitle')}
                     </h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Weather Risk */}
                         <Card className="border-border shadow-sm flex flex-col p-5">
                             <h3 className="text-sm font-medium flex items-center gap-2 mb-2 text-muted-foreground uppercase tracking-wider">
-                                <CloudRain className="w-4 h-4 text-blue-500" /> Weather Risk
+                                <CloudRain className="w-4 h-4 text-blue-500" /> {t('dashboard.weatherRisk')}
                             </h3>
-                            <div className="text-3xl font-bold mb-1">{dashboardRisk.weatherRisk.level}</div>
-                            <p className="text-sm text-foreground mb-4">{dashboardRisk.weatherRisk.message}</p>
+                            <div className="text-3xl font-bold mb-1">{t(`risk.level.${dashboardRisk.weatherRisk.level.toLowerCase()}`)}</div>
+                            <p className="text-sm text-foreground mb-4">{t(`risk.msg.${dashboardRisk.weatherRisk.messageKey}`) !== `risk.msg.${dashboardRisk.weatherRisk.messageKey}` ? t(`risk.msg.${dashboardRisk.weatherRisk.messageKey}`) : dashboardRisk.weatherRisk.message}</p>
                             <div className="w-full bg-blue-100 dark:bg-blue-900/30 h-2 mt-auto rounded-full overflow-hidden">
                                 <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${dashboardRisk.weatherRisk.score}%` }}></div>
                             </div>
@@ -607,10 +611,10 @@ export function DashboardOverview() {
                         {/* Market Risk */}
                         <Card className="border-border shadow-sm flex flex-col p-5">
                             <h3 className="text-sm font-medium flex items-center gap-2 mb-2 text-muted-foreground uppercase tracking-wider">
-                                <TrendingUp className="w-4 h-4 text-green-500" /> Market Risk
+                                <TrendingUp className="w-4 h-4 text-green-500" /> {t('dashboard.marketRisk')}
                             </h3>
-                            <div className="text-3xl font-bold mb-1">{dashboardRisk.marketRisk.level}</div>
-                            <p className="text-sm text-foreground mb-4">{dashboardRisk.marketRisk.message}</p>
+                            <div className="text-3xl font-bold mb-1">{t(`risk.level.${dashboardRisk.marketRisk.level.toLowerCase()}`)}</div>
+                            <p className="text-sm text-foreground mb-4">{t(`risk.msg.${dashboardRisk.marketRisk.messageKey}`) !== `risk.msg.${dashboardRisk.marketRisk.messageKey}` ? t(`risk.msg.${dashboardRisk.marketRisk.messageKey}`) : dashboardRisk.marketRisk.message}</p>
                             <div className="w-full bg-green-100 dark:bg-green-900/30 h-2 mt-auto rounded-full overflow-hidden">
                                 <div className="bg-green-500 h-2 rounded-full" style={{ width: `${dashboardRisk.marketRisk.score}%` }}></div>
                             </div>
@@ -619,10 +623,10 @@ export function DashboardOverview() {
                         {/* Disease Risk */}
                         <Card className="border-border shadow-sm flex flex-col p-5">
                             <h3 className="text-sm font-medium flex items-center gap-2 mb-2 text-muted-foreground uppercase tracking-wider">
-                                <Bug className="w-4 h-4 text-red-500" /> Disease Risk
+                                <Bug className="w-4 h-4 text-red-500" /> {t('dashboard.diseaseRisk')}
                             </h3>
-                            <div className="text-3xl font-bold mb-1">{dashboardRisk.diseaseRisk.level}</div>
-                            <p className="text-sm text-foreground mb-4">{dashboardRisk.diseaseRisk.message}</p>
+                            <div className="text-3xl font-bold mb-1">{t(`risk.level.${dashboardRisk.diseaseRisk.level.toLowerCase()}`)}</div>
+                            <p className="text-sm text-foreground mb-4">{t(`risk.msg.${dashboardRisk.diseaseRisk.messageKey}`) !== `risk.msg.${dashboardRisk.diseaseRisk.messageKey}` ? t(`risk.msg.${dashboardRisk.diseaseRisk.messageKey}`) : dashboardRisk.diseaseRisk.message}</p>
                             <div className="w-full bg-red-100 dark:bg-red-900/30 h-2 mt-auto rounded-full overflow-hidden">
                                 <div className="bg-red-500 h-2 rounded-full" style={{ width: `${dashboardRisk.diseaseRisk.score}%` }}></div>
                             </div>
