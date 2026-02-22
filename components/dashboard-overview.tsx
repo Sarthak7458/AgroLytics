@@ -57,6 +57,71 @@ const getInitialMarketData = (cropName: string) => {
     const history6M = generateHistory(basePrice, basePrice * 0.05, 6, 'monthly');
     return { crop: cropName, price: basePrice, trend: (Math.random() * 10) - 3, history: history6M };
 };
+// --- Mock Season Data (Ported from Seasons page) ---
+const seasonsData: any = {
+    kharif: {
+        name: "Kharif Season",
+        period: "June - October",
+        crops: [
+            {
+                name: "Rice",
+                activities: [
+                    { title: "Land Prep", desc: "Plough 3-4 times", time: "Jun W1", icon: <Sun className="w-5 h-5 text-orange-500" /> },
+                    { title: "Transplanting", desc: "Transplant seedlings", time: "Jul W2", icon: <Sprout className="w-5 h-5 text-green-500" /> },
+                    { title: "Water Mgmt", desc: "Maintain 2-5cm water", time: "Aug", icon: <Droplets className="w-5 h-5 text-blue-500" /> },
+                    { title: "Harvest", desc: "80% grains golden", time: "Oct W1", icon: <Calendar className="w-5 h-5 text-yellow-500" /> },
+                ]
+            },
+            {
+                name: "Cotton",
+                activities: [
+                    { title: "Sowing", desc: "Spacing 90x60cm", time: "May-Jun", icon: <Sprout className="w-5 h-5 text-green-500" /> },
+                    { title: "Irrigation", desc: "Avoid water logging", time: "Jul-Aug", icon: <Droplets className="w-5 h-5 text-blue-500" /> },
+                    { title: "Pest Control", desc: "Monitor sucking pests", time: "Aug-Sep", icon: <Bug className="w-5 h-5 text-red-500" /> },
+                    { title: "Picking", desc: "Pick opened bolls", time: "Oct-Nov", icon: <Calendar className="w-5 h-5 text-foreground" /> },
+                ]
+            },
+            {
+                name: "Soybean",
+                activities: [
+                    { title: "Sowing", desc: "Sow seeds at 3cm depth", time: "Jun W3", icon: <Sprout className="w-5 h-5 text-green-600" /> },
+                    { title: "Weeding", desc: "Weed free for 45 days", time: "Jul", icon: <Leaf className="w-5 h-5 text-red-400" /> },
+                    { title: "Irrigation", desc: "At pod filling stage", time: "Aug", icon: <Droplets className="w-5 h-5 text-blue-500" /> },
+                    { title: "Harvest", desc: "When pods turn yellow", time: "Sep W4", icon: <Calendar className="w-5 h-5 text-yellow-600" /> },
+                ]
+            }
+        ]
+    },
+    rabi: {
+        name: "Rabi Season",
+        period: "October - March",
+        crops: [
+            {
+                name: "Wheat",
+                activities: [
+                    { title: "Sowing", desc: "Early November", time: "Nov W1", icon: <Sprout className="w-5 h-5 text-green-500" /> },
+                    { title: "Irrigation", desc: "CRI stage critical", time: "Nov W4", icon: <Droplets className="w-5 h-5 text-blue-500" /> },
+                    { title: "Fertilizer", desc: "Top dress Nitrogen", time: "Dec Mid", icon: <Sun className="w-5 h-5 text-orange-500" /> },
+                    { title: "Harvest", desc: "Grains are hard", time: "Mar End", icon: <Calendar className="w-5 h-5 text-yellow-500" /> },
+                ]
+            }
+        ]
+    },
+    zaid: {
+        name: "Zaid Season",
+        period: "March - June",
+        crops: [
+            {
+                name: "Watermelon",
+                activities: [
+                    { title: "Sowing", desc: "Pits with FYM", time: "Feb-Mar", icon: <Sprout className="w-5 h-5 text-green-500" /> },
+                    { title: "Irrigation", desc: "5-7 days interval", time: "Apr-May", icon: <Droplets className="w-5 h-5 text-blue-500" /> },
+                    { title: "Harvesting", desc: "Tendril dries up", time: "Jun Early", icon: <Calendar className="w-5 h-5 text-yellow-500" /> },
+                ]
+            }
+        ]
+    }
+}
 
 // --- Mock Risk Analysis (Ported from Risk Analysis page) ---
 const cropSeasons: Record<string, number[]> = {
@@ -113,6 +178,7 @@ export function DashboardOverview() {
     const [marketData, setMarketData] = useState<any>(null);
     const [dashboardRisk, setDashboardRisk] = useState<any>(null);
     const [dashboardSeason, setDashboardSeason] = useState<any>(null);
+    const [dashboardSeasonActivities, setDashboardSeasonActivities] = useState<any>(null);
     useEffect(() => {
         const fetchLatestRecommendation = async () => {
             if (!profile?.id) {
@@ -170,11 +236,18 @@ export function DashboardOverview() {
                     if (!SEASON_MAP[seasonKey]) seasonKey = "kharif";
                     setDashboardSeason(SEASON_MAP[seasonKey]);
 
+                    // Try to find activities for this crop and season
+                    let currentSeasonData = seasonsData[seasonKey] || seasonsData["kharif"];
+                    let selectedCrop = currentSeasonData.crops.find((c: any) => c.name.toLowerCase().includes(marketCrop.toLowerCase()));
+                    if (!selectedCrop) selectedCrop = currentSeasonData.crops[0]; // fallback to first crop in season
+                    setDashboardSeasonActivities(selectedCrop.activities);
+
                 } else {
                     generateChartData(null)
                     setMarketData(getInitialMarketData("Wheat"));
                     setDashboardRisk(analyzeRisk("Wheat", "November"));
                     setDashboardSeason(SEASON_MAP["rabi"]);
+                    setDashboardSeasonActivities(seasonsData["rabi"].crops[0].activities);
                 }
             } catch (err) {
                 console.error("Failed to parse khet details", err)
@@ -182,6 +255,7 @@ export function DashboardOverview() {
                 setMarketData(getInitialMarketData("Wheat"));
                 setDashboardRisk(analyzeRisk("Wheat", "November"));
                 setDashboardSeason(SEASON_MAP["rabi"]);
+                setDashboardSeasonActivities(seasonsData["rabi"].crops[0].activities);
             }
         }
 
@@ -471,19 +545,38 @@ export function DashboardOverview() {
 
                 {/* Current Season Extension as a Card */}
                 {dashboardSeason && (
-                    <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow">
-                        <h3 className="font-sans font-semibold text-lg mb-4 text-foreground flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
-                            Current Season
-                        </h3>
-                        <div className="flex-1 flex flex-col items-center justify-center p-6 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-100 dark:border-yellow-900/50">
-                            <Sun className="w-12 h-12 text-yellow-500 mb-4" />
-                            <h4 className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 mb-2">{dashboardSeason.name}</h4>
-                            <span className="px-4 py-1.5 bg-white dark:bg-card text-yellow-800 dark:text-yellow-400 font-semibold rounded-full shadow-sm text-sm border border-yellow-200 dark:border-yellow-800">
+                    <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow h-full">
+                        <div className="flex justify-between items-center mb-4 gap-2">
+                            <h3 className="font-sans font-semibold text-lg text-foreground flex items-center gap-2 shrink-0">
+                                <Calendar className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
+                                {dashboardSeason.name}
+                            </h3>
+                            <Badge variant="outline" className="text-yellow-700 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800 text-xs truncate">
                                 {dashboardSeason.period}
-                            </span>
-                            <Link href="/seasons" className="mt-8 text-sm flex items-center gap-1 text-muted-foreground hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors font-medium">
-                                View Crop Guide <ArrowRight className="w-4 h-4" />
+                            </Badge>
+                        </div>
+
+                        <div className="flex-1 flex flex-col gap-3 overflow-y-auto pr-1">
+                            {dashboardSeasonActivities && dashboardSeasonActivities.map((act: any, idx: number) => (
+                                <div key={idx} className="flex gap-3 items-start p-3 rounded-lg bg-muted/30 border border-border/50 hover:bg-muted/60 transition-colors">
+                                    <div className="mt-0.5 bg-background p-2 rounded-full shadow-sm border border-border shrink-0">
+                                        {act.icon}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                            <h4 className="font-semibold text-sm truncate">{act.title}</h4>
+                                            <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 bg-background rounded-full border border-border shrink-0">{act.time}</span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{act.desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
+                            <span className="text-xs text-muted-foreground">Based on your {marketData?.crop || "crop"} selection</span>
+                            <Link href="/seasons" className="text-xs flex items-center gap-1 font-medium text-yellow-600 hover:text-yellow-700 dark:text-yellow-500 dark:hover:text-yellow-400 transition-colors">
+                                Full Guide <ArrowRight className="w-3 h-3" />
                             </Link>
                         </div>
                     </Card>
