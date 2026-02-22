@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
-import { TrendingUp, Leaf, Droplets, Sprout, MapPin, ArrowUpRight, ArrowDownRight, Bug, CloudRain, AlertTriangle } from 'lucide-react'
+import { TrendingUp, Leaf, Droplets, Sprout, MapPin, ArrowUpRight, ArrowDownRight, Bug, CloudRain, AlertTriangle, Calendar, Sun, ArrowRight } from 'lucide-react'
 import { useProfile } from '@/app/context/profile-context'
 import { supabase } from '@/lib/supabase'
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +18,12 @@ const COLORS = [
 ]
 
 const DEFAULT_CHART_COLORS = ['#16a34a', '#2563eb', '#ea580c', '#eab308', '#8b5cf6']
+
+const SEASON_MAP: Record<string, { name: string, period: string }> = {
+    kharif: { name: "Kharif Season", period: "June - October" },
+    rabi: { name: "Rabi Season", period: "October - March" },
+    zaid: { name: "Zaid Season", period: "March - June" }
+};
 
 // --- Mock Market Data Generation (Ported from Market page) ---
 const generateHistory = (base: number, volatility: number, count: number, type: 'daily' | 'monthly') => {
@@ -106,6 +112,7 @@ export function DashboardOverview() {
     // Market & Risk States
     const [marketData, setMarketData] = useState<any>(null);
     const [dashboardRisk, setDashboardRisk] = useState<any>(null);
+    const [dashboardSeason, setDashboardSeason] = useState<any>(null);
     useEffect(() => {
         const fetchLatestRecommendation = async () => {
             if (!profile?.id) {
@@ -159,16 +166,22 @@ export function DashboardOverview() {
 
                     setDashboardRisk(analyzeRisk(marketCrop, sowingMonth));
 
+                    let seasonKey = season || "kharif";
+                    if (!SEASON_MAP[seasonKey]) seasonKey = "kharif";
+                    setDashboardSeason(SEASON_MAP[seasonKey]);
+
                 } else {
                     generateChartData(null)
                     setMarketData(getInitialMarketData("Wheat"));
                     setDashboardRisk(analyzeRisk("Wheat", "November"));
+                    setDashboardSeason(SEASON_MAP["rabi"]);
                 }
             } catch (err) {
                 console.error("Failed to parse khet details", err)
                 generateChartData(null)
                 setMarketData(getInitialMarketData("Wheat"));
                 setDashboardRisk(analyzeRisk("Wheat", "November"));
+                setDashboardSeason(SEASON_MAP["rabi"]);
             }
         }
 
@@ -452,6 +465,26 @@ export function DashboardOverview() {
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
+                        </div>
+                    </Card>
+                )}
+
+                {/* Current Season Extension as a Card */}
+                {dashboardSeason && (
+                    <Card className="p-6 border-border flex flex-col hover:shadow-md transition-shadow">
+                        <h3 className="font-sans font-semibold text-lg mb-4 text-foreground flex items-center gap-2">
+                            <Calendar className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
+                            Current Season
+                        </h3>
+                        <div className="flex-1 flex flex-col items-center justify-center p-6 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-100 dark:border-yellow-900/50">
+                            <Sun className="w-12 h-12 text-yellow-500 mb-4" />
+                            <h4 className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 mb-2">{dashboardSeason.name}</h4>
+                            <span className="px-4 py-1.5 bg-white dark:bg-card text-yellow-800 dark:text-yellow-400 font-semibold rounded-full shadow-sm text-sm border border-yellow-200 dark:border-yellow-800">
+                                {dashboardSeason.period}
+                            </span>
+                            <Link href="/seasons" className="mt-8 text-sm flex items-center gap-1 text-muted-foreground hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors font-medium">
+                                View Crop Guide <ArrowRight className="w-4 h-4" />
+                            </Link>
                         </div>
                     </Card>
                 )}
