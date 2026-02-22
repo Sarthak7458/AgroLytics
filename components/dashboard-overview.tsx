@@ -153,7 +153,7 @@ export function DashboardOverview() {
             <div className="grid lg:grid-cols-3 gap-6 mb-8">
                 <Card className="col-span-1 border-none shadow-sm flex flex-col justify-center items-start p-6 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-900 dark:to-green-950/20">
                     <div className="flex flex-col gap-1">
-                        <h2 className="text-3xl font-bold tracking-tight text-green-900 dark:text-green-400">
+                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-green-900 dark:text-green-400">
                             Welcome back{profile?.name ? `, ${profile.name}` : ''}! 🌾
                         </h2>
                         <p className="text-muted-foreground mt-1">
